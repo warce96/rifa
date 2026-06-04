@@ -75,18 +75,19 @@ def public_base_url(handler):
 def qr_data_uri(data):
     try:
         import qrcode
+        from qrcode.constants import ERROR_CORRECT_M
 
         qr = qrcode.QRCode(
             version=None,
-            error_correction=qrcode.constants.ERROR_CORRECT_M,
-            box_size=8,
-            border=1,
+            error_correction=ERROR_CORRECT_M,
+            box_size=6,
+            border=2,
         )
         qr.add_data(data)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
         buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
+        img.save(buffer, format="PNG", optimize=True)
         encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
         return f"data:image/png;base64,{encoded}"
     except Exception:
@@ -97,7 +98,23 @@ def qr_img_html(data):
     uri = qr_data_uri(data)
     if uri:
         return f"<img class='ticket-qr' src='{uri}' alt='QR de Instagram'>"
-    return f"<div class='qr-fallback'>QR<br>{esc(data)}</div>"
+    return "<div class='qr-fallback'>QR no disponible<br>Instale qrcode[pil]</div>"
+
+
+def optimize_logo_bytes(raw_bytes):
+    try:
+        from PIL import Image, ImageOps
+
+        img = Image.open(io.BytesIO(raw_bytes))
+        img = ImageOps.exif_transpose(img)
+        if img.mode not in ("RGB", "RGBA"):
+            img = img.convert("RGBA")
+        img.thumbnail((320, 120), Image.LANCZOS)
+        out = io.BytesIO()
+        img.save(out, format="PNG", optimize=True)
+        return out.getvalue(), ".png"
+    except Exception:
+        return raw_bytes, None
 
 
 def init_db():
@@ -700,25 +717,25 @@ class App(BaseHTTPRequestHandler):
         safe_title = re.sub(r"[^A-Za-z0-9_-]", "_", title_suffix or "tickets")
         extra = f"""
 <style>
-body {{ background:white; }}
+body {{ background:white; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
 .no-print {{ margin:12px; }}
-.ticket {{ width:52mm; max-width:52mm; padding:1.5mm 2mm; margin:0 auto; border-bottom:1px dashed #000; font-family: Arial, Helvetica, sans-serif; color:#000; text-align:left; overflow:hidden; box-sizing:border-box; }}
-.ticket h2 {{ font-size:12px; line-height:1.08; text-align:center; margin:1mm 0; font-weight:bold; word-break:break-word; }}
-.ticket p {{ font-size:9px; line-height:1.14; margin:0.8mm 0; word-break:break-word; }}
-.ticket-logo {{ display:block; max-width:34mm; max-height:16mm; margin:0 auto 1mm auto; }}
-.ticket-code {{ font-size:20px; line-height:1; text-align:center; font-weight:bold; margin:1mm 0 0.5mm 0; letter-spacing:0.4px; }}
-.num {{ font-size:11px; line-height:1.05; text-align:center; font-weight:bold; margin:0.5mm 0 1mm 0; }}
-.qr-wrap {{ display:flex; justify-content:center; margin:1mm 0; }}
-.ticket-qr {{ width:25mm; height:25mm; image-rendering:pixelated; }}
-.qr-fallback {{ width:25mm; min-height:25mm; border:1px solid #000; font-size:7px; overflow:hidden; padding:1mm; text-align:center; word-break:break-all; }}
-.line {{ border-top:1px dashed #000; margin:1mm 0; }}
-.small {{ font-size:7.5px !important; line-height:1.08 !important; text-align:center; }}
+.ticket {{ width:54mm; max-width:54mm; padding:1mm 1.5mm; margin:0 auto; border-bottom:1px dashed #000; font-family: Arial, Helvetica, sans-serif; color:#000; text-align:center; overflow:hidden; box-sizing:border-box; }}
+.ticket h2 {{ font-size:11px; line-height:1.05; text-align:center; margin:0.6mm auto; font-weight:bold; word-break:break-word; }}
+.ticket p {{ font-size:8.5px; line-height:1.08; margin:0.5mm auto; word-break:break-word; text-align:center; }}
+.ticket-logo {{ display:block; width:auto; max-width:26mm; max-height:8mm; object-fit:contain; margin:0 auto 0.5mm auto; }}
+.ticket-code {{ font-size:18px; line-height:1; text-align:center; font-weight:bold; margin:0.6mm auto 0.3mm auto; letter-spacing:0.3px; }}
+.num {{ font-size:10px; line-height:1.05; text-align:center; font-weight:bold; margin:0.3mm auto 0.6mm auto; }}
+.qr-wrap {{ display:block; width:100%; text-align:center; margin:0.8mm auto; }}
+.ticket-qr {{ width:22mm; height:22mm; display:block; margin:0 auto; image-rendering:pixelated; }}
+.qr-fallback {{ width:22mm; min-height:22mm; border:1px solid #000; font-size:6px; overflow:hidden; padding:1mm; text-align:center; word-break:break-all; margin:0 auto; box-sizing:border-box; }}
+.line {{ border-top:1px dashed #000; margin:0.8mm auto; width:100%; }}
+.small {{ font-size:7px !important; line-height:1.05 !important; text-align:center; }}
 .only-wide {{ display:none; }}
 @media print {{
   html, body {{ width:58mm !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; overflow:visible !important; }}
   header, nav, .no-print {{ display:none !important; }}
-  main {{ padding:0 !important; margin:0 !important; max-width:none !important; width:58mm !important; height:auto !important; min-height:0 !important; }}
-  .ticket {{ width:52mm !important; max-width:52mm !important; margin:0 auto !important; page-break-after:auto !important; break-after:auto !important; page-break-inside:avoid; break-inside:avoid; }}
+  main {{ padding:0 !important; margin:0 !important; max-width:none !important; width:58mm !important; height:auto !important; min-height:0 !important; text-align:center !important; }}
+  .ticket {{ width:54mm !important; max-width:54mm !important; margin:0 auto !important; padding-left:1.5mm !important; padding-right:1.5mm !important; page-break-after:auto !important; break-after:auto !important; page-break-inside:auto !important; break-inside:auto !important; }}
   .ticket:last-child {{ border-bottom:none !important; }}
   @page {{ size:58mm auto; margin:0; }}
 }}
@@ -759,9 +776,12 @@ function guardarPDF() {{
             ext = Path(filename).suffix.lower() or ".png"
             if ext not in [".png", ".jpg", ".jpeg", ".gif"]:
                 ext = ".png"
+            optimized_content, forced_ext = optimize_logo_bytes(logo_file["content"])
+            if forced_ext:
+                ext = forced_ext
             final_name = f"{uuid.uuid4().hex}{ext}"
             target = LOGOS_DIR / final_name
-            target.write_bytes(logo_file["content"])
+            target.write_bytes(optimized_content)
             logo_path = f"static/logos/{final_name}"
         with get_conn() as conn:
             conn.execute(
