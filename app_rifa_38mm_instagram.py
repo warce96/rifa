@@ -702,24 +702,25 @@ class App(BaseHTTPRequestHandler):
 <style>
 body {{ background:white; }}
 .no-print {{ margin:12px; }}
-.ticket {{ width:38mm; max-width:38mm; padding:1.2mm 1mm; margin:0 auto 3mm auto; border-bottom:1px dashed #000; font-family: Arial, Helvetica, sans-serif; color:#000; text-align:left; overflow:hidden; }}
-.ticket h2 {{ font-size:10px; line-height:1.05; text-align:center; margin:1mm 0; font-weight:bold; word-break:break-word; }}
-.ticket p {{ font-size:7.5px; line-height:1.12; margin:0.7mm 0; word-break:break-word; }}
-.ticket-logo {{ display:block; max-width:24mm; max-height:12mm; margin:0 auto 1mm auto; }}
-.ticket-code {{ font-size:15px; line-height:1; text-align:center; font-weight:bold; margin:1mm 0 0.5mm 0; letter-spacing:0; }}
-.num {{ font-size:9px; line-height:1.05; text-align:center; font-weight:bold; margin:0.5mm 0 1mm 0; }}
+.ticket {{ width:52mm; max-width:52mm; padding:1.5mm 2mm; margin:0 auto; border-bottom:1px dashed #000; font-family: Arial, Helvetica, sans-serif; color:#000; text-align:left; overflow:hidden; box-sizing:border-box; }}
+.ticket h2 {{ font-size:12px; line-height:1.08; text-align:center; margin:1mm 0; font-weight:bold; word-break:break-word; }}
+.ticket p {{ font-size:9px; line-height:1.14; margin:0.8mm 0; word-break:break-word; }}
+.ticket-logo {{ display:block; max-width:34mm; max-height:16mm; margin:0 auto 1mm auto; }}
+.ticket-code {{ font-size:20px; line-height:1; text-align:center; font-weight:bold; margin:1mm 0 0.5mm 0; letter-spacing:0.4px; }}
+.num {{ font-size:11px; line-height:1.05; text-align:center; font-weight:bold; margin:0.5mm 0 1mm 0; }}
 .qr-wrap {{ display:flex; justify-content:center; margin:1mm 0; }}
-.ticket-qr {{ width:21mm; height:21mm; image-rendering:pixelated; }}
-.qr-fallback {{ width:21mm; min-height:21mm; border:1px solid #000; font-size:6px; overflow:hidden; padding:1mm; text-align:center; word-break:break-all; }}
+.ticket-qr {{ width:25mm; height:25mm; image-rendering:pixelated; }}
+.qr-fallback {{ width:25mm; min-height:25mm; border:1px solid #000; font-size:7px; overflow:hidden; padding:1mm; text-align:center; word-break:break-all; }}
 .line {{ border-top:1px dashed #000; margin:1mm 0; }}
-.small {{ font-size:6.5px !important; line-height:1.05 !important; text-align:center; }}
+.small {{ font-size:7.5px !important; line-height:1.08 !important; text-align:center; }}
 .only-wide {{ display:none; }}
 @media print {{
-  html, body {{ width:38mm; margin:0 !important; padding:0 !important; }}
+  html, body {{ width:58mm !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; overflow:visible !important; }}
   header, nav, .no-print {{ display:none !important; }}
-  main {{ padding:0 !important; margin:0 !important; max-width:none !important; width:38mm !important; }}
-  .ticket {{ width:38mm !important; max-width:38mm !important; margin:0 !important; page-break-after:always; break-after:page; }}
-  @page {{ size:38mm auto; margin:0; }}
+  main {{ padding:0 !important; margin:0 !important; max-width:none !important; width:58mm !important; height:auto !important; min-height:0 !important; }}
+  .ticket {{ width:52mm !important; max-width:52mm !important; margin:0 auto !important; page-break-after:auto !important; break-after:auto !important; page-break-inside:avoid; break-inside:avoid; }}
+  .ticket:last-child {{ border-bottom:none !important; }}
+  @page {{ size:58mm auto; margin:0; }}
 }}
 </style>
 <script>
@@ -735,7 +736,7 @@ function guardarPDF() {{
 <button onclick="guardarPDF()" class="btn-secondary">Guardar PDF</button>
 <a class="btn btn-secondary" href="/tickets">Buscar tickets</a>
 <a class="btn btn-secondary" href="/ventas">Volver</a>
-<p>Formato ajustado para impresora térmica de <b>38 mm</b>. En Chrome/Edge use margen ninguno, escala 100%, sin encabezado ni pie. Si el driver permite definir papel, seleccione ancho 38 mm.</p>
+<p>Formato ajustado para impresora térmica de <b>58 mm</b>. En Chrome/Edge use margen ninguno, escala 100%, sin encabezado ni pie. En el driver seleccione papel 58 mm y largo automático/recibo/continuo para evitar espacios blancos.</p>
 </div>
 {tickets}
 """
